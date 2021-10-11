@@ -1,4 +1,3 @@
-#Kiitu
 import asyncio
 import sys
 
