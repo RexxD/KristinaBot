@@ -5,11 +5,6 @@ __help__ = """
  ❍ /tm :Get Telegraph Link Of Replied Media
  ❍ /txt :Get Telegraph Link of Replied Text
 
-*Chatbot* 
-_Admins only:_
- ❍ /addchat*:* Enables Chatbot mode in the chat.
- ❍ /rmchat*:* Disables Chatbot mode in the chat.
-
 *Date-time-Weather*
  ❍ /time <country code>*:* Gives information about a timezone.
  ❍ /weather <city>*:* Get weather info in a particular place.
