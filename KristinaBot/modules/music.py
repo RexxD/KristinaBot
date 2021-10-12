@@ -1,3 +1,96 @@
+import os
+import requests
+import wget
+from pyrogram import filters
+
+from KristinaBot import pbot as Kristina 
+from KristinaBot.pyrogramee.dark import get_arg
+
+
+@Kristina.on_message(filters.command("saavn"))
+async def song(client, message):
+    message.chat.id
+    message.from_user["id"]
+    args = get_arg(message) + " " + "song"
+    if args.startswith(" "):
+        await message.reply("<b>Enter song name❗</b>")
+        return ""
+    m = await message.reply_text(
+        "Downloading your song,\nPlz wait ⏳️"
+    )
+    try:
+        r = requests.get(f"https://jostapi.herokuapp.com/saavn?query={args}")
+    except Exception as e:
+        await m.edit(str(e))
+        return
+    sname = r.json()[0]["song"]
+    slink = r.json()[0]["media_url"]
+    ssingers = r.json()[0]["singers"]
+    file = wget.download(slink)
+    ffile = file.replace("mp4", "m4a")
+    os.rename(file, ffile)
+    await message.reply_audio(audio=ffile, title=sname, performer=ssingers)
+    os.remove(ffile)
+    await m.delete()
+
+
+# deezer music 
+
+
+import os
+import aiofiles
+import aiohttp
+from pyrogram import filters
+from KristinaBot import pbot as Kristina
+
+ARQ = "https://thearq.tech/"
+
+async def fetch(url):
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as resp:
+            try:
+                data = await resp.json()
+            except:
+                data = await resp.text()
+    return data
+
+async def download_song(url):
+    song_name = f"Kristina.mp3"
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as resp:
+            if resp.status == 200:
+                f = await aiofiles.open(song_name, mode="wb")
+                await f.write(await resp.read())
+                await f.close()
+    return song_name
+
+
+@Kristina.on_message(filters.command("deezer"))
+async def deezer(_, message):
+    if len(message.command) < 2:
+        await message.reply_text("Download Now Deezer")
+        return
+    text = message.text.split(None, 1)[1]
+    query = text.replace(" ", "%20")
+    m = await message.reply_text("Searching...")
+    try:
+        r = await fetch(f"{ARQ}deezer?query={query}&count=1")
+        title = r[0]["title"]
+        url = r[0]["url"]
+        artist = r[0]["artist"]
+    except Exception as e:
+        await m.edit(str(e))
+        return
+    await m.edit("Downloading...")
+    song = await download_song(url)
+    await m.edit("Uploading...")
+    await message.reply_audio(audio=song, title=title, performer=artist)
+    os.remove(song)
+    await m.delete()
+
+
+# youtube Video/audio & lyrics 
+
 import asyncio
 import io
 import os
@@ -157,54 +250,6 @@ async def ytmusic(client, message: Message):
             os.remove(files)
 
 
-@pbot.on_message(filters.command(["deezer", "dsong"]))
-async def deezer(client, message: Message):
-    pablo = await client.send_message(message.chat.id, "Searching the song")
-    sgname = get_text(message)
-    if not sgname:
-        await pablo.edit("Invalid Command Syntax, Please Check Help Menu To Know More!")
-        return
-    link = f"https://api.deezer.com/search?q={sgname}&limit=1"
-    dato = requests.get(url=link).json()
-    match = dato.get("data")
-    urlhp = match[0]
-    urlp = urlhp.get("link")
-    thums = urlhp["album"]["cover_big"]
-    thum_f = wget.download(thums)
-    polu = urlhp.get("artist")
-    replo = urlp[29:]
-    urlp = f"https://starkapi.herokuapp.com/deezer/{replo}"
-    datto = requests.get(url=urlp).json()
-    mus = datto.get("url")
-    sname = f"{urlhp.get('title')}.mp3"
-    doc = requests.get(mus)
-    await client.send_chat_action(message.chat.id, "upload_audio")
-    await pablo.edit("`Downloading Song From Deezer!`")
-    with open(sname, "wb") as f:
-        f.write(doc.content)
-    c_time = time.time()
-    await pablo.edit(f"`Downloaded {sname}! Now Uploading Song...`")
-    await client.send_audio(
-        message.chat.id,
-        audio=open(sname, "rb"),
-        duration=int(urlhp.get("duration")),
-        title=str(urlhp.get("title")),
-        performer=str(polu.get("name")),
-        thumb=thum_f,
-        progress=progress,
-        progress_args=(pablo, c_time, f"`Uploading {sname} Song From Deezer!`", sname),
-    )
-    await client.send_chat_action(message.chat.id, "cancel")
-    await pablo.delete()
-
-
-def time_to_seconds(time):
-    stringt = str(time)
-    return sum(int(x) * 60 ** i for i, x in enumerate(reversed(stringt.split(":"))))
-
-
-# Lel, Didn't Get Time To Make New One So Used Plugin Made br @mrconfused and @sandy1709 dont edit credits
-
 
 @pbot.on_message(filters.command(["lyric", "lyrics"]))
 async def _(client, message):
@@ -295,5 +340,3 @@ async def lyrics(client, message):
             f"**Search query**: \n`{artist} - {song}`\n\n```{songs.lyrics}```"
         )
     return
-
-
