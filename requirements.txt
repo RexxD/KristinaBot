@@ -58,17 +58,14 @@ lyricsgenius
 tswift
 envparse
 fontTools
-
-#profanity (Credits to Julia)
+Python_ARQ
 better_profanity
 textblob 
 nudepy
-
+redis
 motor
 cloudscraper
-Ffmpeg
-
-#ImageEditor
+ffmpeg
 glitch_this
 NumPy
 opencv-python-headless
